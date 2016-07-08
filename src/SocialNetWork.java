@@ -1,5 +1,4 @@
 import com.google.common.collect.*;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -9,7 +8,8 @@ public class SocialNetWork
     private Map<Long, Persona> personasById = new HashMap<>();
     private BiMap <Persona, Persona> parejas = HashBiMap.create();
     private TreeMultimap<Persona, Persona> multimapAmigos = TreeMultimap.create();
-    private Multimap <Persona, Persona> multimapAmigosPareja = HashMultimap.create();
+    //private Map<Persona, Persona>
+
 
     public void addPersona (Persona persona)
     {
@@ -82,6 +82,16 @@ public class SocialNetWork
             throw new  RuntimeException(p2.getNombre() + "ya es amigo de " + p1.getNombre());
         }
     }
+
+    public void addAmigos (Persona p1, Persona... amigos)
+    {
+        for(Persona amigo: amigos)
+        {
+            addAmigos(p1, amigo);
+        }
+
+    }
+
     public Set <Persona> getAmigos(Persona persona) // Set y no List para que no haya amigos duplicados
     {
         return multimapAmigos.get(persona);
@@ -112,8 +122,82 @@ public class SocialNetWork
         return parejas;
     }
 
-    public Set<Persona> getPeople (Persona persona) {return null;}// devuelve de mayor a menor el numero de amigos que tienen todas las personas
+    public Integer getNumeroAmigos (Persona persona)
+    {
 
-       public int getConnectionDegree (Persona p1, Persona p2) {return 0;}
-    public SortedSet<Persona> getConnectionDegreePath (Persona p1, Persona p2) {return null;}  //
+        return getAmigos(persona).size();
+    }
+
+    public List<Persona> popularidad (Persona persona)
+    {
+        List<Persona> personaList = new ArrayList<>(personasByName.values()); // guardamos el map de personas en un array list
+        Collections.sort(personaList, (p1, p2) -> {
+
+            int numAmigos1 = getNumeroAmigos(p1);
+            int numAmigos2 = getNumeroAmigos(p2);
+            if (numAmigos1<numAmigos2)
+            {
+            return 1;
+            }
+            if (numAmigos1>numAmigos2)
+            {
+            return -1;
+            }
+            else return 0;
+
+        });
+
+        return personaList;
+    }
+
+
+    public boolean getGradoConexionAmistad (Persona p1, Persona p2) // devuelve el grado de conexión entre dos personas (1,2,3...)
+    {
+
+            Set<Persona> personasVisitadas = new TreeSet<>(); // está vacio porqué aun no hemos visitado nada
+            Queue<Persona> colaAmigos = new LinkedList<>();
+
+            Persona siguientePersona = p1;
+            boolean amigoEncontrado = false;
+            personasVisitadas.add(p1);
+
+            lazosGlobales:
+
+        while (siguientePersona != null)
+        {
+            for (Persona amigo : getAmigos(siguientePersona))
+            {
+                if (amigo.equals(p2))
+                {
+                  amigoEncontrado = true;
+                    break lazosGlobales;
+                }
+
+                if(!personasVisitadas.contains(amigo))
+                {
+                  personasVisitadas.add(amigo);
+                  colaAmigos.offer(amigo);
+                }
+            }
+            siguientePersona = colaAmigos.poll();
+        }
+            return amigoEncontrado;
+    }
+
+
+
+    public int getGradoConexion (Persona p1, Persona p2)
+    {
+        int GA = 0;
+
+        if (p1 == p2)
+        {
+            return GA;
+        }
+        GA++;
+
+         return GA;
+
+    }
+
 }
